@@ -224,3 +224,47 @@ export function isInputBlock(block: DeepnoteBlock): block is InputBlock {
     isInputDateRangeBlock(block)
   )
 }
+
+export type InputBlockValueOverride = InputBlock['metadata']['deepnote_variable_value']
+
+export interface InputBlockValueOverrides {
+  [inputName: string]: InputBlockValueOverride
+}
+
+/** Return an error when an override cannot be stored by the corresponding input block. */
+export function getInputBlockValueOverrideValidationError(block: InputBlock, value: unknown): string | null {
+  switch (block.type) {
+    case 'input-checkbox':
+      return typeof value === 'boolean' ? null : `must be a boolean for ${block.type}`
+    case 'input-text':
+    case 'input-textarea':
+    case 'input-file':
+    case 'input-date':
+      return typeof value === 'string' ? null : `must be a string for ${block.type}`
+    case 'input-slider': {
+      if (typeof value !== 'string') {
+        return `must be a string for ${block.type}`
+      }
+      const parsed = Number.parseFloat(value)
+      return Number.isFinite(parsed) && value.trim() === parsed.toString()
+        ? null
+        : `must be a numeric string for ${block.type}`
+    }
+    case 'input-select':
+      if (block.metadata.deepnote_allow_multiple_values === true) {
+        return isStringArray(value) ? null : `must be an array of strings for ${block.type}`
+      }
+      return typeof value === 'string' ? null : `must be a string for ${block.type}`
+    case 'input-date-range':
+      if (typeof value === 'string') {
+        return null
+      }
+      return isStringArray(value) && value.length === 2
+        ? null
+        : `must be a string or an array of exactly two strings for ${block.type}`
+  }
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every(item => typeof item === 'string')
+}

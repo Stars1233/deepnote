@@ -40,6 +40,9 @@ deepnote run my-project.deepnote --block abc123
 # Set input values
 deepnote run my-project.deepnote --input name="Alice" --input count=42
 
+# Set a checkbox and a multi-select input
+deepnote run my-project.deepnote --input enabled=true --input regions='["US","EU"]'
+
 # Preview without running
 deepnote run my-project.deepnote --dry-run
 
@@ -55,6 +58,10 @@ OPENAI_API_KEY=sk-... deepnote run my-project.deepnote --prompt "Analyze the dat
 # Run an agent block standalone (no file needed)
 OPENAI_API_KEY=sk-... deepnote run --prompt "Write a hello world script"
 ```
+
+Use plain strings for text, date, file, slider, and single-select inputs; use `true` or `false` for checkboxes; and use
+JSON arrays of strings for multi-select inputs and absolute date ranges. Unknown input names and invalid values are
+rejected before execution.
 
 **Environment variables for `--prompt` / agent blocks:**
 
