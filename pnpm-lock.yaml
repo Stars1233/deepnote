@@ -100,6 +100,9 @@ importers:
       '@deepnote/blocks':
         specifier: workspace:*
         version: link:../blocks
+      '@deepnote/cloud':
+        specifier: workspace:*
+        version: link:../cloud
       '@deepnote/convert':
         specifier: workspace:*
         version: link:../convert
@@ -164,6 +167,15 @@ importers:
       zod-to-json-schema:
         specifier: ^3.25.1
         version: 3.25.1(zod@3.25.76)
+
+  packages/cloud:
+    dependencies:
+      '@deepnote/database-integrations':
+        specifier: workspace:*
+        version: link:../database-integrations
+      zod:
+        specifier: 3.25.76
+        version: 3.25.76
 
   packages/convert:
     dependencies:

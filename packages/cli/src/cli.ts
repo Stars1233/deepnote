@@ -1,6 +1,6 @@
 import { DEFAULT_API_URL, DEFAULT_ENV_FILE, DEFAULT_INTEGRATIONS_FILE } from '@deepnote/database-integrations'
 import chalk from 'chalk'
-import { Command } from 'commander'
+import { Command, Option } from 'commander'
 // Note: We keep 'chalk' import for:
 // 1. Welcome text (displayed before argument parsing, so we can't use getChalk())
 // 2. Setting chalk.level in preAction hook for backward compatibility
@@ -25,6 +25,7 @@ import { DEEPNOTE_TOKEN_ENV } from './constants'
 import { ExitCode } from './exit-codes'
 import { getChalk, getOutputConfig, OUTPUT_FORMATS, output, setOutputConfig, shouldDisableColor } from './output'
 import { createFormatValidator, JSON_LLM_RESOLUTION, TOON_LLM_RESOLUTION } from './utils/format-validator'
+import { parseTimeoutSeconds } from './utils/parse-timeout'
 import { version } from './version'
 
 /**
@@ -298,8 +299,17 @@ ${c.bold('Examples:')}
     .option('--open', 'Open the project in Deepnote Cloud after successful execution')
     .option('--context', 'Include analysis context in machine-readable output (requires -o json/toon/llm)')
     .option('--prompt <text>', 'Run an LLM agent block with the given prompt')
-    .option('--url <url>', 'API base URL for fetching integrations', DEFAULT_API_URL)
-    .option('--token <token>', `Bearer token for fetching integrations (or use ${DEEPNOTE_TOKEN_ENV} env var)`)
+    .option('--url <url>', 'API base URL (for integrations and cloud runs)', DEFAULT_API_URL)
+    .option('--token <token>', `Bearer token for the Deepnote API (or use ${DEEPNOTE_TOKEN_ENV} env var)`)
+    .option('--cloud', 'Run the notebook in Deepnote Cloud, then download the resulting snapshot locally')
+    .option('--notebook-id <uuid>', 'Cloud notebook id to run (with --cloud); alternative to a local .deepnote file')
+    .option('--out <path>', 'Write the downloaded cloud snapshot to this exact path (with --cloud)')
+    .option(
+      '--timeout <seconds>',
+      'Max seconds to wait for a cloud run to finish (with --cloud, default 600)',
+      parseTimeoutSeconds
+    )
+    .addOption(new Option('--push', 'Push a local notebook to Deepnote before running').hideHelp())
     .addHelpText('after', () => {
       const c = getChalk()
       return `
@@ -321,6 +331,12 @@ ${c.bold('Examples:')}
 
   ${c.dim('# Run and open in Deepnote Cloud after execution')}
   $ deepnote run notebook.ipynb --open
+
+  ${c.dim('# Run an existing notebook in Deepnote Cloud and download its snapshot')}
+  $ deepnote run --cloud --notebook-id 0f1e2d3c-4b5a-6789-abcd-ef0123456789
+
+  ${c.dim('# Run a .deepnote (notebook id read from the file) in the cloud, with inputs')}
+  $ deepnote run my-project.deepnote --cloud --input name="Alice"
 
   ${c.dim('# Run with a specific Python virtual environment')}
   $ deepnote run my-project.deepnote --python path/to/venv
